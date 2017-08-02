@@ -1,5 +1,11 @@
 # tkvariables
-Enhanced tk Variables that add some common sense. 
+Enhanced tk Variables that add some common sense. Dropin replacement for tk variables. 
+
+```python
+import tkvariables as tkv
+#...
+tkv.IntVar(self, value=42)
+```
 
 ## Useful arguments on trace functions
 
