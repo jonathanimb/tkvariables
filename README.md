@@ -32,3 +32,34 @@ Added common inplace math.
 variable += 1
 ```
  As a shortcut to the very cumbersome `variable.set(variable.get() + 1)`. 
+
+## Limits
+
+You can specify a limit with the `min` and `max` arguments. Obviously this will lead to odd results if used with a StringVar.
+
+```python
+variable = tkv.IntVar(min=0, max=10)
+```
+
+These can be updated after initialization like any other attribute:
+
+```python
+variable.max = 20
+```
+
+## Trace will accept a list of functions
+
+```python
+variable.trace('w', [logger, gui_update, sanity_check])
+```
+
+## Set trace functions in the initialization
+
+Added `trace_w` etc argument to the initialization. 
+
+```python
+variable = tkv.IntVar(trace_o = [gui_update, sanity_check], trace_w=logger)
+```
+
+## todo
+* implement deleteing traced functions by disableing `trace_vdelete` and adding a 'delete' option. 
