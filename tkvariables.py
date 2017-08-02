@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 
@@ -8,21 +8,43 @@ except ImportError:
 	import tkinter as tk
 
 class _Base:
-	def __init__(self):
-		self.old_value = self.get()
+	def __init__(self, master=None, min=None, max=None, trace_w=None, trace_o=None, trace_r=None, **kwargs):
+		self.min = min
+		self.max = max
 		self.get_funcs = []
 		self.set_funcs = []
 		self.onchange_funcs = []
 
-	def trace(self, mode, func):
-		if mode == 'w':
-			self.set_funcs.append(func)
-		elif mode == 'r':
-			self.get_funcs.append(func)
-		elif mode == 'o':
-			self.onchange_funcs.append(func)
-		else:
-			raise ValueError('mode {!r} is not known'.format(mode))
+		self.tk_super.__init__(self, master, **kwargs)
+		self.tk_super.trace(self, 'w', self.run_set)
+		self.old_value = self.get()
+		self.tk_super.trace(self, 'r', self.run_get)
+
+		self.trace('w', trace_w)
+		self.trace('o', trace_o)
+		self.trace('r', trace_r)
+
+	def set(self, value):
+		if self.min is not None and value < self.min:
+			value = self.min
+		if self.max is not None and value > self.max:
+			value = self.max
+		self.tk_super.set(self, value)
+
+	def trace(self, mode, funcs, delete=False):
+		if funcs is None:
+			return
+		if not isinstance(funcs, (list, tuple)):
+			funcs = [funcs]
+		for func in funcs:
+			if mode == 'w':
+				self.set_funcs.append(func)
+			elif mode == 'r':
+				self.get_funcs.append(func)
+			elif mode == 'o':
+				self.onchange_funcs.append(func)
+			else:
+				raise ValueError('mode {!r} is not known'.format(mode))
 
 	def run_get(self, *useless_args):
 		for func in self.get_funcs:
@@ -37,57 +59,56 @@ class _Base:
 				func(new_value, self.old_value, self)
 		self.old_value = new_value
 
-	def __iadd__(self, value):
-		self.set(self.get() + value)
+	def _get_value(self, other):
+		if isinstance(other, tk.Variable):
+			return other.get()
+		else:
+			return other
+
+	def __iadd__(self, other):
+		self.set(self.get() + self._get_value(other))
 		return self
 
-	def __isub__(self, value):
-		self.set(self.get() - value)
+	def __isub__(self, other):
+		self.set(self.get() - self._get_value(other))
 		return self
 
-	def __imul__(self, value):
-		self.set(self.get() * value)
+	def __imul__(self, other):
+		self.set(self.get() * self._get_value(other))
 		return self
 
-	def __imul__(self, value):
-		self.set(self.get() * value)
+	def __imul__(self, other):
+		self.set(self.get() * self._get_value(other))
 		return self
 
-	def __idiv__(self, value):
-		self.set(self.get() / value)
+	def __idiv__(self, other):
+		self.set(self.get() / self._get_value(other))
 		return self
 
-	def __ifloordiv__(self, value):
-		self.set(self.get() // value)
+	def __ifloordiv__(self, other):
+		self.set(self.get() // self._get_value(other))
 		return self
 
 class StringVar(_Base, tk.StringVar):
 	def __init__(self, *args, **kwargs):
-		tk.StringVar.__init__(self, *args, **kwargs)
-		tk.StringVar.trace(self, 'w', self.run_set)
-		_Base.__init__(self)
-		tk.StringVar.trace(self, 'r', self.run_get)
+		self.tk_super = tk.StringVar
+		_Base.__init__(self, *args, **kwargs)
 
 class IntVar(_Base, tk.IntVar):
 	def __init__(self, *args, **kwargs):
-		tk.IntVar.__init__(self, *args, **kwargs)
-		tk.IntVar.trace(self, 'w', self.run_set)
-		_Base.__init__(self)
-		tk.IntVar.trace(self, 'r', self.run_get)
+		self.tk_super = tk.IntVar
+		_Base.__init__(self, *args, **kwargs)
 
 class DoubleVar(_Base, tk.DoubleVar):
 	def __init__(self, *args, **kwargs):
-		tk.DoubleVar.__init__(self, *args, **kwargs)
-		tk.DoubleVar.trace(self, 'w', self.run_set)
-		_Base.__init__(self)
-		tk.DoubleVar.trace(self, 'r', self.run_get)
+		self.tk_super = tk.DoubleVar
+		_Base.__init__(self, *args, **kwargs)
 
 class BooleanVar(_Base, tk.BooleanVar):
 	def __init__(self, *args, **kwargs):
-		tk.BooleanVar.__init__(self, *args, **kwargs)
-		tk.BooleanVar.trace(self, 'w', self.run_set)
-		_Base.__init__(self)
-		tk.BooleanVar.trace(self, 'r', self.run_get)
+		self.tk_super = tk.BooleanVar
+		_Base.__init__(self, *args, **kwargs)
+
 
 ##debug / demo
 def set_callback(new, old, var):
@@ -109,6 +130,8 @@ def decrement():
 def main():
 	global counter
 	r = tk.Tk()
+	r.geometry('300x300')
+
 	options = 'spam and eggs'.split()
 	var = StringVar(value=options[0])
 	var.trace('w', set_callback)
@@ -118,12 +141,18 @@ def main():
 	ent.pack()
 
 	f = tk.Frame(r)
-	counter = IntVar()
+	counter = IntVar(min=-2, max=15)
 	btn = tk.Button(f, text='-', command=decrement)
 	btn.pack(side=tk.LEFT)
 	lbl = tk.Label(f, textvariable=counter)
 	lbl.pack(side=tk.LEFT)
 	btn = tk.Button(f, text='+', command=increment)
+	btn.pack(side=tk.LEFT)
+	other = IntVar(value=10)
+	def add10():
+		global counter
+		counter += other
+	btn = tk.Button(f, text='+10', command=add10)
 	btn.pack(side=tk.LEFT)
 	f.pack()
 
@@ -131,3 +160,4 @@ def main():
 
 if __name__ == "__main__":
 	main()
+
