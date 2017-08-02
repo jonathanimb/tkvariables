@@ -18,7 +18,7 @@ def callback(new, old, var):
 
 ## Trigger the callback only when the variable changes. 
 
-When a user selects a dropdown just to see the options, but does not change anything, there is no reason to trigger your callback. The new 'o' mode only triggers when the value of the variable changes. 
+The new onchange mode only triggers when the value of the variable changes. Now you can set the variable from a process and the callback is only triggered when something changes. 
 
 ```python
 variable.trace('o', callback)
@@ -33,7 +33,7 @@ variable += 1
 ```
 As a shortcut to the very cumbersome `variable.set(variable.get() + 1)`. 
  
-Also works with other tk.Variables (including tkv.Variables) as a shortcut to `variable.set(variable.get() + other_variable.get())`. 
+Also works with other tk.Variables as a shortcut to `variable.set(variable.get() + other_variable.get())`. 
 
 ## Limits
 
@@ -48,6 +48,8 @@ These can be updated after initialization like any other attribute:
 ```python
 variable.max = 20
 ```
+
+Set the limits to `None` to cancel the limiting. 
 
 ## Trace will accept a list of functions
 
