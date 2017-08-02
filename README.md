@@ -31,7 +31,9 @@ Added common inplace math.
 ```python
 variable += 1
 ```
- As a shortcut to the very cumbersome `variable.set(variable.get() + 1)`. 
+As a shortcut to the very cumbersome `variable.set(variable.get() + 1)`. 
+ 
+Also works with other tk.Variables (including tkv.Variables) as a shortcut to `variable.set(variable.get() + other_variable.get())`. 
 
 ## Limits
 
