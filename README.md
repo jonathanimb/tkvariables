@@ -1,5 +1,5 @@
 # tkvariables
-Enhanced tk Variables that add some common sense. Dropin replacement for tk variables. 
+Enhanced tk Variables that add some common sense. Dropin replacement for tk variables for most use cases. This will break your code if you use the arguments provided by the trace callback or if you use the trace ID returned from `trace`. 
 
 ```python
 import tkvariables as tkv
